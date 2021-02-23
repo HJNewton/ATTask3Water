@@ -23,7 +23,7 @@ public class SpawnObjects : MonoBehaviour
 
     Vector3 GenerateNewPosition()
     {
-        Vector3 newPosition = new Vector3(Random.Range(-9f, 9f), Random.Range(1f, 9f), Random.Range(-9f, 9f));
+        Vector3 newPosition = new Vector3(Random.Range(-4.5f, 4.5f), Random.Range(1f, 4f), Random.Range(-4.5f, 4.5f));
 
         return newPosition;
     }
