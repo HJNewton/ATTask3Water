@@ -1,8 +1,14 @@
+// Upgrade NOTE: replaced '_Object2World' with 'unity_ObjectToWorld'
+
 Shader "Custom/Waves"
 {
     Properties
     {
-        _Color ("Color", Color) = (1,1,1,1)
+        _ColourBase ("Color Base", Color) = (1,1,1,1)
+        _ColourHighlight("Color Highlight", Color) = (1,1,1,1)
+        _ColourHeight ("Colour Height", Float) = 0.0
+        _MaxVariance ("Maximum Variance", Float) = 3.0
+        _LerpAmount ("Colour Lerp Amount", Float) = 0.0
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
         _Glossiness ("Smoothness", Range(0,1)) = 0.5
         _Metallic ("Metallic", Range(0,1)) = 0.0
@@ -27,11 +33,16 @@ Shader "Custom/Waves"
         struct Input
         {
             float2 uv_MainTex;
+            float4 color : COLOR;
         };
 
         half _Glossiness;
         half _Metallic;
-        fixed4 _Color;
+        fixed4 _ColourBase;
+        fixed4 _ColourHighlight;
+        float _ColourHeight;
+        float _MaxVariance;
+        float _LerpAmount;
 		float4 _WaveA;
 		float4 _WaveB;
 		float4 _WaveC;
@@ -64,17 +75,25 @@ Shader "Custom/Waves"
         }
 
         void vert(inout appdata_full vertexData) 
-        {
+        {     
             float3 gridPoint = vertexData.vertex.xyz;
 			float3 tangent = float3(1, 0, 0);
 			float3 binormal = float3(0, 0, 1);
 			float3 p = gridPoint;
+
 			p += GerstnerWave(_WaveA, gridPoint, tangent, binormal);
 			p += GerstnerWave(_WaveB, gridPoint, tangent, binormal);
 			p += GerstnerWave(_WaveC, gridPoint, tangent, binormal);
 			float3 normal = normalize(cross(binormal, tangent));
-			vertexData.vertex.xyz = p;
-			vertexData.normal = normal;
+			vertexData.vertex.xyz = p;			
+
+            float4 worldPos = mul(unity_ObjectToWorld, vertexData.vertex); // Converts all the vertex data to world positions
+            float diff = worldPos.y - _ColourHeight; // Calculate the difference between colour height and y pos of vertex
+            float factor = saturate(diff/(2*_MaxVariance) + _LerpAmount); // Essentially calculates how much colour to apply
+
+            vertexData.color = lerp(_ColourBase, _ColourHighlight, factor);
+
+            vertexData.normal = normal;
         }
              
 
@@ -86,14 +105,11 @@ Shader "Custom/Waves"
         UNITY_INSTANCING_BUFFER_END(Props)
 
         void surf (Input IN, inout SurfaceOutputStandard o)
-        {
-            // Albedo comes from a texture tinted by color
-            fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-            o.Albedo = c.rgb;
-            // Metallic and smoothness come from slider variables
+        {           
+            o.Albedo = tex2D(_MainTex, IN.uv_MainTex).rgb * IN.color;
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
-            o.Alpha = c.a;
+            //o.Alpha = _ColourBase.a / _ColourHighlight.a;
         }
         ENDCG
     }
