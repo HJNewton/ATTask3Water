@@ -18,12 +18,12 @@ Shader "Custom/Waves"
     }
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags { "Queue"="Transparent" "RenderType"="Transparent" }
         LOD 200
 
         CGPROGRAM
         // Physically based Standard lighting model, and enable shadows on all light types
-        #pragma surface surf Standard fullforwardshadows vertex:vert addshadow
+        #pragma surface surf Standard fullforwardshadows vertex:vert addshadow alpha
 
         // Use shader model 3.0 target, to get nicer looking lighting
         #pragma target 3.0
@@ -109,7 +109,7 @@ Shader "Custom/Waves"
             o.Albedo = tex2D(_MainTex, IN.uv_MainTex).rgb * IN.color;
             o.Metallic = _Metallic;
             o.Smoothness = _Glossiness;
-            //o.Alpha = _ColourBase.a / _ColourHighlight.a;
+            o.Alpha = _ColourBase.a;
         }
         ENDCG
     }
