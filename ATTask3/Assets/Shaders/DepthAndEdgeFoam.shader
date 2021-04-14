@@ -10,6 +10,7 @@ Shader "Unlit/DepthAndEdgeFoam"
         [HDR] _EdgeColor("Edge Color", Color) = (1, 1, 1, 1)
         _IntersectionThreshold("Intersection threshold", Float) = 1
         _IntersectionPow("Pow", Float) = 1
+
         _WaveA("Wave A", Vector) = (1,0,0.5,10)
         _WaveB("Wave B", Vector) = (0,1,0.25,20)
         _WaveC("Wave C", Vector) = (1,1,0.15,10)
@@ -28,7 +29,9 @@ Shader "Unlit/DepthAndEdgeFoam"
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
-            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
+            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight*/
+            #pragma fullforwardshadows vertex:vert addshadow alpha
+
 
             #include "UnityCG.cginc"
 
