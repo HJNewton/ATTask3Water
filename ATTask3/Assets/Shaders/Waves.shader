@@ -10,11 +10,11 @@ Shader "Custom/Waves"
         _MaxVariance ("Maximum Variance", Float) = 3.0
         _LerpAmount ("Colour Lerp Amount", Float) = 0.0
         _MainTex ("Albedo (RGB)", 2D) = "white" {}
-        _Glossiness ("Smoothness", Range(0,1)) = 0.5
-        _Metallic ("Metallic", Range(0,1)) = 0.0
-		_WaveA ("Wave A", Vector) = (1,0,0.5,10)
-        _WaveB ("Wave B", Vector) = (0,1,0.25,20)
-		_WaveC ("Wave C", Vector) = (1,1,0.15,10)
+        _Glossiness("Smoothness", Range(0,1)) = 0.5
+        _Metallic("Metallic", Range(0,1)) = 0.0
+        _WaveA("Wave A", Vector) = (1,0,0.5,10)
+        _WaveB("Wave B", Vector) = (0,1,0.25,20)
+        _WaveC("Wave C", Vector) = (1,1,0.15,10)
     }
     SubShader
     {
@@ -85,7 +85,7 @@ Shader "Custom/Waves"
 			p += GerstnerWave(_WaveB, gridPoint, tangent, binormal);
 			p += GerstnerWave(_WaveC, gridPoint, tangent, binormal);
 			float3 normal = normalize(cross(binormal, tangent));
-			vertexData.vertex.xyz = p;			
+			vertexData.vertex.xyz = p;	
 
             float4 worldPos = mul(unity_ObjectToWorld, vertexData.vertex); // Converts all the vertex data to world positions
             float diff = worldPos.y - _ColourHeight; // Calculate the difference between colour height and y pos of vertex

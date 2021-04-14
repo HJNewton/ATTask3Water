@@ -8,6 +8,9 @@ Shader "Unlit/DepthAndEdgeFoam"
         [HDR] _EdgeColor("Edge Color", Color) = (1, 1, 1, 1)
         _IntersectionThreshold("Intersection threshold", Float) = 1
         _IntersectionPow("Pow", Float) = 1
+        _WaveA("Wave A", Vector) = (1,0,0.5,10)
+        _WaveB("Wave B", Vector) = (0,1,0.25,20)
+        _WaveC("Wave C", Vector) = (1,1,0.15,10)
     }
 
     SubShader
@@ -47,10 +50,51 @@ Shader "Unlit/DepthAndEdgeFoam"
             fixed _IntersectionThreshold;
             fixed _IntersectionPow;
 
+            float4 _WaveA;
+            float4 _WaveB;
+            float4 _WaveC;
+
+            float3 GerstnerWave(float4 wave, float3 p, inout float3 tangent, inout float3 binormal)
+            {
+                float steepness = wave.z;
+                float wavelength = wave.w;
+                float k = 2 * UNITY_PI / wavelength;
+                float c = sqrt(9.8 / k);
+                float2 d = normalize(wave.xy);
+                float f = k * (dot(d, p.xz) - c * _Time.y);
+                float a = steepness / k;
+
+                tangent += float3(
+                    -d.x * d.x * (steepness * sin(f)),
+                    d.x * (steepness * cos(f)),
+                    -d.x * d.y * (steepness * sin(f))
+                    );
+                binormal += float3(
+                    -d.x * d.y * (steepness * sin(f)),
+                    d.y * (steepness * cos(f)),
+                    -d.y * d.y * (steepness * sin(f))
+                    );
+                return float3(
+                    d.x * (a * cos(f)),
+                    a * sin(f),
+                    d.y * (a * cos(f))
+                    );
+            }
+
             v2f vert(appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
+
+                float3 gridPoint = v.vertex.xyz;
+                float3 tangent = float3(1, 0, 0);
+                float3 binormal = float3(0, 0, 1);
+
+                o.vertex.xy += GerstnerWave(_WaveA, gridPoint, tangent, binormal);
+                o.vertex.xy += GerstnerWave(_WaveB, gridPoint, tangent, binormal);
+                o.vertex.xy += GerstnerWave(_WaveC, gridPoint, tangent, binormal);
+
+                v.vertex.xyz = gridPoint;
 
                 // Get depth
                 o.screenPos = ComputeScreenPos(o.vertex);
@@ -63,10 +107,11 @@ Shader "Unlit/DepthAndEdgeFoam"
             {
                 fixed4 col = _Color;
 
+                // Get depth
                 float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.screenPos)));
                 float depth = sceneZ - i.screenPos.z;
 
-                // fade with depth
+                // Fade with depth
                 fixed depthFading = saturate((abs(pow(depth, _DepthPow))) / _DepthFactor);
                 col *= depthFading;
 
@@ -76,7 +121,7 @@ Shader "Unlit/DepthAndEdgeFoam"
 
                 return col;
             }
-            ENDCG        
-    }
+            ENDCG
+        }
     }
 }
