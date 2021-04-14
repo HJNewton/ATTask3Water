@@ -3,6 +3,8 @@ Shader "Unlit/DepthAndEdgeFoam"
     Properties
     {
         [HDR] _Color("Color", Color) = (1, 1, 1, 1)
+        _MainTex("Texture", 2D) = "white" {}
+
         _DepthFactor("Depth Factor", float) = 1.0
         _DepthPow("Depth Pow", float) = 1.0
         [HDR] _EdgeColor("Edge Color", Color) = (1, 1, 1, 1)
@@ -33,15 +35,20 @@ Shader "Unlit/DepthAndEdgeFoam"
             struct appdata
             {
                 float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
             };
 
             struct v2f
             {
+                float2 uv : TEXCOORD0;                
                 float4 vertex : SV_POSITION;
                 float4 screenPos : TEXCOORD1;
             };
 
             float4 _Color;
+            sampler2D _MainTex;
+            float4 _MainTex_ST;
+
             UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
             float _DepthFactor;
             fixed _DepthPow;
@@ -85,6 +92,7 @@ Shader "Unlit/DepthAndEdgeFoam"
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
+                o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 
                 float3 gridPoint = v.vertex.xyz;
                 float3 tangent = float3(1, 0, 0);
@@ -94,7 +102,7 @@ Shader "Unlit/DepthAndEdgeFoam"
                 o.vertex.xy += GerstnerWave(_WaveB, gridPoint, tangent, binormal);
                 o.vertex.xy += GerstnerWave(_WaveC, gridPoint, tangent, binormal);
 
-                v.vertex.xyz = gridPoint;
+                //v.vertex.xyz = gridPoint;
 
                 // Get depth
                 o.screenPos = ComputeScreenPos(o.vertex);
@@ -105,7 +113,7 @@ Shader "Unlit/DepthAndEdgeFoam"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                fixed4 col = _Color;
+                fixed4 col = _Color * tex2D(_MainTex, i.uv);
 
                 // Get depth
                 float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.screenPos)));
