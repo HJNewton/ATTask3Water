@@ -2,14 +2,14 @@ Shader "Unlit/DepthAndEdgeFoam"
 {
     Properties
     {
-        [HDR] _Color("Color", Color) = (1, 1, 1, 1)
+        [HDR] _Colour("Colour", Color) = (1, 1, 1, 1)
         _MainTex("Texture", 2D) = "white" {}
 
         _DepthFactor("Depth Factor", float) = 1.0
-        _DepthPow("Depth Pow", float) = 1.0
-        [HDR] _EdgeColor("Edge Color", Color) = (1, 1, 1, 1)
-        _IntersectionThreshold("Intersection threshold", Float) = 1
-        _IntersectionPow("Pow", Float) = 1
+        _DepthStrength("Depth Strength", float) = 1.0
+        [HDR] _EdgeColour("Edge Colour", Color) = (1, 1, 1, 1)
+        _IntersectionThreshold("Intersection Threshold", Float) = 1
+        _IntersectionStrength("Intersection Strength", Float) = 1
 
         _WaveA("Wave A", Vector) = (1,0,0.5,10)
         _WaveB("Wave B", Vector) = (0,1,0.25,20)
@@ -48,17 +48,17 @@ Shader "Unlit/DepthAndEdgeFoam"
                 float4 screenPos : TEXCOORD1;
             };
 
-            float4 _Color;
+            float4 _Colour;
             sampler2D _MainTex;
             float4 _MainTex_ST;
 
             UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
             float _DepthFactor;
-            fixed _DepthPow;
+            fixed _DepthStrength;
 
-            float4 _EdgeColor;
+            float4 _EdgeColour;
             fixed _IntersectionThreshold;
-            fixed _IntersectionPow;
+            fixed _IntersectionStrength;
 
             float4 _WaveA;
             float4 _WaveB;
@@ -107,7 +107,7 @@ Shader "Unlit/DepthAndEdgeFoam"
 
                 //v.vertex.xyz = gridPoint;
 
-                // Get depth
+                // Get depth of each vertex based on position
                 o.screenPos = ComputeScreenPos(o.vertex);
                 COMPUTE_EYEDEPTH(o.screenPos.z);
 
@@ -116,21 +116,21 @@ Shader "Unlit/DepthAndEdgeFoam"
 
             fixed4 frag(v2f i) : SV_Target
             {
-                fixed4 col = _Color * tex2D(_MainTex, i.uv);
+                fixed4 colour = _Colour * tex2D(_MainTex, i.uv);
 
                 // Get depth
                 float sceneZ = LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(i.screenPos)));
                 float depth = sceneZ - i.screenPos.z;
 
                 // Fade with depth
-                fixed depthFading = saturate((abs(pow(depth, _DepthPow))) / _DepthFactor);
-                col *= depthFading;
+                fixed depthFading = saturate((abs(pow(depth, _DepthStrength))) / _DepthFactor);
+                colour *= depthFading;
 
                 // Edge foam line
                 fixed intersect = saturate((abs(depth)) / _IntersectionThreshold);
-                col += _EdgeColor * pow(1 - intersect, 4) * _IntersectionPow;
+                colour += _EdgeColour * pow(1 - intersect, 4) * _IntersectionStrength;
 
-                return col;
+                return colour;
             }
             ENDCG
         }

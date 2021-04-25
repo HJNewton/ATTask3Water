@@ -4,8 +4,8 @@ Shader "Custom/Waves"
 {
     Properties
     {
-        _ColourBase ("Color Base", Color) = (1,1,1,1)
-        _ColourHighlight("Color Highlight", Color) = (1,1,1,1)
+        _ColourBase ("Colour Base", Color) = (1,1,1,1)
+        _ColourHighlight("Colour Highlight", Color) = (1,1,1,1)
         _ColourHeight ("Colour Height", Float) = 0.0
         _MaxVariance ("Maximum Variance", Float) = 3.0
         _LerpAmount ("Colour Lerp Amount", Float) = 0.0
@@ -62,11 +62,13 @@ Shader "Custom/Waves"
 				d.x * (steepness * cos(f)),
 				-d.x * d.y * (steepness * sin(f))
 			);
+
 			binormal += float3(
 				-d.x * d.y * (steepness * sin(f)),
 				d.y * (steepness * cos(f)),
 				-d.y * d.y * (steepness * sin(f))
 			);
+
 			return float3(
 				d.x * (a * cos(f)),
 				a * sin(f),

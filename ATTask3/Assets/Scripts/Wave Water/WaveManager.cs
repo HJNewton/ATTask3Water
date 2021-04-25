@@ -9,7 +9,7 @@ public class WaveManager : MonoBehaviour
     public float amplitude = 1f; // Height of the waves
     public float length = 2f; // Length of the waves
     public float speed = 1f; // Speed the waves move at
-    public float offset = 0f;
+    public float offset = 0f; // Position on the plane (increases over time to give impression the waves are moving across the plane)
 
     private void Awake()
     {
